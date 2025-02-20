@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "98072284066",
+    "firebase_url": "https://medicine-dispenser-4f53b-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "medicine-dispenser-4f53b",
+    "storage_bucket": "medicine-dispenser-4f53b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:98072284066:android:fbeb2a0d4fc0a8dcea00fb",
+        "android_client_info": {
+          "package_name": "com.dispensermedicine.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTqG8H8Zis3aJyW7VcH1sa_3PjDFZCsYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:98072284066:android:9fd99d8813e25b09ea00fb",
+        "android_client_info": {
+          "package_name": "com.example.medicine_dispender"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTqG8H8Zis3aJyW7VcH1sa_3PjDFZCsYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
