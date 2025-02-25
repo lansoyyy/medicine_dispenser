@@ -1,5 +1,6 @@
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:medicine_dispender/services/add_reminder.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,8 +24,20 @@ class _HomePageState extends State<HomePage> {
         selectedTime = pickedTime;
       });
 
-      print(selectedTime);
+      addReminder(selectedTime!, formatTimeOfDay(selectedTime!));
     }
+  }
+
+  String formatTimeOfDay(TimeOfDay time) {
+    final now = DateTime.now();
+    final formattedTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+    return TimeOfDay.fromDateTime(formattedTime).format(context);
   }
 
   @override
@@ -65,37 +78,37 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               height: 10,
             ),
-            StreamBuilder<DatabaseEvent>(
-              stream: FirebaseDatabase.instance.ref().onValue,
-              builder: (context, snapshot) {
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('Reminders')
+                  .snapshots(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasError) {
                   print(snapshot.error);
                   return const Center(child: Text('Error'));
                 }
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SizedBox();
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 50),
+                    child: Center(
+                        child: CircularProgressIndicator(
+                      color: Colors.black,
+                    )),
+                  );
                 }
 
-                final dynamic cardata = snapshot.data!.snapshot.value;
-
-                if (cardata == null || cardata is! Map) {
-                  return const Center(child: Text('No data available'));
-                }
-
-                final pillList = (cardata).entries.toList();
+                final data = snapshot.requireData;
 
                 return Expanded(
                   child: ListView.builder(
-                    itemCount: pillList.length,
+                    itemCount: data.docs.length,
                     itemBuilder: (context, index) {
-                      final pillData = pillList[index].value;
-
-                      final timestamp = pillData['timestamp'] ?? 'No timestamp';
-
                       return Card(
                         child: ListTile(
                           title: Text('Reminder to take Pill ${index + 1}'),
-                          subtitle: Text('Timestamp: $timestamp'),
+                          subtitle: Text(
+                              'Timestamp: ${data.docs[index]['timeFormatted']}'),
                           leading: const Icon(Icons.medication),
                           trailing: const Icon(
                             Icons.notifications,
