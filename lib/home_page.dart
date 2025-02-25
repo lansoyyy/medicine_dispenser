@@ -95,10 +95,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   void addReminder(String pickedTime, String reminderTime, int minutesBefore) {
-    FirebaseFirestore.instance.collection('Reminders').add({
+    FirebaseFirestore.instance
+        .collection('Reminders')
+        .doc(DateTime.now().toString())
+        .set({
       'pickedTime': pickedTime,
       'reminderTime': reminderTime,
       'minutesBefore': minutesBefore,
+      'dateTime': DateTime.now(),
     }).then((value) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
