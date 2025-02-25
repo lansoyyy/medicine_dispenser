@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Medicine Dispenser',
+      title: 'MedBuzz',
       home: const HomePage(),
     );
   }
