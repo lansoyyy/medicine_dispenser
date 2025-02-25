@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:medicine_dispender/services/add_reminder.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,25 +18,98 @@ class _HomePageState extends State<HomePage> {
       initialTime: selectedTime ?? TimeOfDay.now(),
     );
 
-    if (pickedTime != null && pickedTime != selectedTime) {
+    if (pickedTime != null) {
       setState(() {
         selectedTime = pickedTime;
       });
 
-      addReminder(selectedTime!, formatTimeOfDay(selectedTime!));
+      // Ask how many minutes before the reminder should trigger
+      _askMinutesBeforeReminder();
     }
   }
 
-  String formatTimeOfDay(TimeOfDay time) {
-    final now = DateTime.now();
-    final formattedTime = DateTime(
+  void _askMinutesBeforeReminder() {
+    final TextEditingController minutesController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Set Reminder Time'),
+          content: TextField(
+            controller: minutesController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Minutes before',
+              hintText: 'Enter minutes before the picked time',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final int? minutesBefore = int.tryParse(minutesController.text);
+                if (minutesBefore != null && selectedTime != null) {
+                  Navigator.of(context).pop();
+                  _setReminder(minutesBefore);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Please enter a valid number.')),
+                  );
+                }
+              },
+              child: const Text('Set Reminder'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _setReminder(int minutesBefore) {
+    final DateTime now = DateTime.now();
+    final DateTime pickedDateTime = DateTime(
       now.year,
       now.month,
       now.day,
-      time.hour,
-      time.minute,
+      selectedTime!.hour,
+      selectedTime!.minute,
     );
-    return TimeOfDay.fromDateTime(formattedTime).format(context);
+
+    // Calculate the reminder time (minutes before the picked time)
+    final DateTime reminderDateTime =
+        pickedDateTime.subtract(Duration(minutes: minutesBefore));
+
+    // Format both times
+    final String formattedPickedTime =
+        TimeOfDay.fromDateTime(pickedDateTime).format(context);
+    final String formattedReminderTime =
+        TimeOfDay.fromDateTime(reminderDateTime).format(context);
+
+    // Save to Firestore
+    addReminder(formattedPickedTime, formattedReminderTime, minutesBefore);
+  }
+
+  void addReminder(String pickedTime, String reminderTime, int minutesBefore) {
+    FirebaseFirestore.instance.collection('Reminders').add({
+      'pickedTime': pickedTime,
+      'reminderTime': reminderTime,
+      'minutesBefore': minutesBefore,
+    }).then((value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Reminder set for $pickedTime, with alert at $reminderTime')),
+      );
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add reminder: $error')),
+      );
+    });
   }
 
   @override
@@ -45,7 +117,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
-        child: Icon(
+        child: const Icon(
           Icons.add,
           color: Colors.white,
         ),
@@ -55,7 +127,7 @@ class _HomePageState extends State<HomePage> {
       ),
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: Text(
+        title: const Text(
           'Medicine Dispenser',
           style: TextStyle(
             color: Colors.white,
@@ -68,16 +140,15 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Notifications',
               style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('Reminders')
@@ -92,9 +163,10 @@ class _HomePageState extends State<HomePage> {
                   return const Padding(
                     padding: EdgeInsets.only(top: 50),
                     child: Center(
-                        child: CircularProgressIndicator(
-                      color: Colors.black,
-                    )),
+                      child: CircularProgressIndicator(
+                        color: Colors.black,
+                      ),
+                    ),
                   );
                 }
 
@@ -104,11 +176,12 @@ class _HomePageState extends State<HomePage> {
                   child: ListView.builder(
                     itemCount: data.docs.length,
                     itemBuilder: (context, index) {
+                      final reminder = data.docs[index];
                       return Card(
                         child: ListTile(
                           title: Text('Reminder to take Pill ${index + 1}'),
                           subtitle: Text(
-                              'Timestamp: ${data.docs[index]['timeFormatted']}'),
+                              'Picked Time: ${reminder['pickedTime']}\nReminder Time: ${reminder['reminderTime']} (${reminder['minutesBefore']} minutes before)'),
                           leading: const Icon(Icons.medication),
                           trailing: const Icon(
                             Icons.notifications,
