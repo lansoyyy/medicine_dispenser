@@ -70,7 +70,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _setReminder(int minutesBefore) {
+  Future<void> _setReminder(int minutesBefore) async {
     final DateTime now = DateTime.now();
     final DateTime pickedDateTime = DateTime(
       now.year,
@@ -92,6 +92,21 @@ class _HomePageState extends State<HomePage> {
 
     // Save to Firestore
     addReminder(formattedPickedTime, formattedReminderTime, minutesBefore);
+    // final alarmSettings = AlarmSettings(
+    //   id: Random().nextInt(1000),
+    //   dateTime: reminderDateTime,
+    //   assetAudioPath: 'assets/mixkit-morning-clock-alarm-1003.wav',
+    //   loopAudio: true,
+    //   vibrate: true,
+    //   androidFullScreenIntent: true,
+    //   notificationSettings: const NotificationSettings(
+    //     title: 'Reminder for taking your medicine',
+    //     body: 'Reminder for taking your medicine',
+    //     stopButton: 'Stop the alarm',
+    //     icon: 'notification_icon',
+    //   ),
+    // );
+    // await Alarm.set(alarmSettings: alarmSettings);
   }
 
   void addReminder(String pickedTime, String reminderTime, int minutesBefore) {
