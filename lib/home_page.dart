@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_alarm_clock/flutter_alarm_clock.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -205,8 +206,16 @@ class _HomePageState extends State<HomePage> {
                       return Card(
                         child: ListTile(
                           title: Text('Reminder to take Pill ${index + 1}'),
-                          subtitle: Text(
-                              'Picked Time: ${reminder['pickedTime']}\nReminder Time: ${reminder['reminderTime']} (${reminder['minutesBefore']} minutes before)'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                  'Picked Time: ${reminder['pickedTime']}\nReminder Time: ${reminder['reminderTime']} (${reminder['minutesBefore']} minutes before)'),
+                              Text(
+                                  'Timestamp: ${DateFormat.yMMMd().add_jm().format(reminder['dateTime'].toDate())}'),
+                            ],
+                          ),
                           leading: const Icon(Icons.medication),
                           trailing: const Icon(
                             Icons.notifications,
